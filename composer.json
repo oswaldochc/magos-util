@@ -1,0 +1,27 @@
+{
+  "name": "magosframework/magos-util",
+  "description": "provides an API for util",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "magos",
+    "util"
+  ],
+  "autoload": {
+    "psr-4": {
+      "Magos\\Util\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^5.5 || ^7.0",
+  },
+  "require-dev": {
+    "phpunit/PHPUnit": "~4.0"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "autoload-dev": {
+    "psr-4": {
+      "MagosTest\\Util\\": "test/"
+    }
+  }
+}
