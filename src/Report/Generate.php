@@ -11,17 +11,17 @@ class Generate{
 	public function __construct($phpbridgeversion = ''){
 		try {
 			defined('JAVA_HOSTS') || define("JAVA_HOSTS", \Magos\Report::getJavaHost());
-			$siuBridge = \Magos\Report::getBridgeMagosVersion($phpbridgeversion);
+			$siuBridge = \Magos\Util\Report::getBridgeMagosVersion($phpbridgeversion);
 			if(!@include_once($siuBridge)) {
 				$includeError = 1;
 				throw new \Exception('Servicio "Firma Comprobantes" No disponible');
 			}
 			$this->_connexion = new java('org.magos.JavaBridgeJdbcConnector');
-			$this->_connexion->setUrl(\Magos\Report::getConexion());
-			$this->_connexion->setUsername(\Magos\Report::getUser());
+			$this->_connexion->setUrl(\Magos\Util\Report::getConexion());
+			$this->_connexion->setUsername(\Magos\Util\Report::getUser());
 
-			$this->_connexion->setDriver(\Magos\Report::getDriver());
-			$this->_connexion->setPassword(\Magos\Report::getPassword());
+			$this->_connexion->setDriver(\Magos\Util\Report::getDriver());
+			$this->_connexion->setPassword(\Magos\Util\Report::getPassword());
 			$this->_crearReporte = java('net.sf.jasperreports.engine.JasperFillManager');
 
 		} catch(JavaException $e) {
@@ -122,7 +122,7 @@ class Generate{
 		} else {
 			$outputFile = 'tmpfile_'.time();
 		}
-		$outputFile =  \Magos\Report::getHttpdTmp().DIRECTORY_SEPARATOR.$outputFile.'.xlsx';
+		$outputFile =  \Magos\Util\Report::getHttpdTmp().DIRECTORY_SEPARATOR.$outputFile.'.xlsx';
 		// JRXlsExporter xlsExporter = new JRXlsExporter();
 		$xlsExporter = new java('net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter');
 		// xlsExporter.setExporterInput(new SimpleExporterInput(xlsPrint));
@@ -169,7 +169,7 @@ class Generate{
 		} else {
 			$outputFile = 'tmpfile_'.time();
 		}
-		$outputFile =  \Magos\Report::getHttpdTmp().DIRECTORY_SEPARATOR.$outputFile.'.xlsx';
+		$outputFile =  \Magos\Util\Report::getHttpdTmp().DIRECTORY_SEPARATOR.$outputFile.'.xlsx';
 		// JRXlsExporter docExporter = new JRXlsExporter();
 		$docExporter = new java('net.sf.jasperreports.engine.export.ooxml.JRDocxExporter');
 		// docExporter.setExporterInput(new SimpleExporterInput(xlsPrint));
