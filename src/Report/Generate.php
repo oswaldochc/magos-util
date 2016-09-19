@@ -10,7 +10,7 @@ class Generate{
 
 	public function __construct($phpbridgeversion = ''){
 		try {
-			defined('JAVA_HOSTS') || define("JAVA_HOSTS", \Magos\Report::getJavaHost());
+			defined('JAVA_HOSTS') || define("JAVA_HOSTS", \Magos\Util\Report::getJavaHost());
 			$siuBridge = \Magos\Util\Report::getBridgeMagosVersion($phpbridgeversion);
 			if(!@include_once($siuBridge)) {
 				$includeError = 1;
