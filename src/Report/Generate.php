@@ -55,6 +55,9 @@ class Generate{
 			case 'verpdf':
 				$this->verPdf($archivoReporte);
 				break;
+			case 'downloadpdf':
+				$this->downloadPdf($archivoReporte, $adicional);
+				break;
 			case 'verxls':
 				$this->verXlsx($archivoReporte, $adicional);
 				break;
@@ -111,6 +114,54 @@ class Generate{
 		}
 	}
 
+	public function downloadPdf($archivoReporte, $adicional){
+		java_set_file_encoding("UTF-8");
+		if (is_array($adicional)) {
+			if (array_key_exists('outputfile', $adicional)) {
+				$outputFile = $adicional['outputfile'];
+			} else {
+				$outputFile = 'tmpfile_'.time();
+			}
+		} else {
+			$outputFile = 'tmpfile_'.time();
+		}
+		$outputFile =  \Magos\Util\Report::getHttpdTmp().DIRECTORY_SEPARATOR.$outputFile.'.xlsx';
+		try {
+			// JRPdfExporter pdfExporter = new JRPdfExporter();
+			$pdfExporter = new java("net.sf.jasperreports.engine.export.JRPdfExporter");
+			// pdfExporter.setExporterInput(new SimpleExporterInput(PdfPrint));
+			$simpleExporterInput = new java('net.sf.jasperreports.export.SimpleExporterInput', $archivoReporte);
+			$pdfExporter->setExporterInput($simpleExporterInput);
+			// pdfExporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outPdfName));
+			$simpleOutputStreamExporterOutput = new java('net.sf.jasperreports.export.SimpleOutputStreamExporterOutput', $outputFile);
+			$pdfExporter->setExporterOutput($simpleOutputStreamExporterOutput);
+			// SimplePdfExporterConfiguration configuration = new SimplePdfExporterConfiguration();
+			$configuration = new java('net.sf.jasperreports.export.SimplePdfExporterConfiguration');
+			// configuration.setCreatingBatchModeBookmarks(true);
+			$configuration->setCreatingBatchModeBookmarks(true);
+			// pdfExporter.setConfiguration(configuration);
+			$pdfExporter->setConfiguration($configuration);
+			// pdfExporter.exportReport();
+			$pdfExporter->exportReport();
+
+			$nombre = date('dmY').'_' . $adicional['name'] . '.pdf';
+			header('Content-Description: File Transfer');
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename="'.$nombre.'"');
+			header('Expires: 0');
+			header('Cache-Control: must-revalidate');
+			header('Pragma: public');
+			header('Content-Length: ' . filesize($outputFile));
+			readfile($outputFile);
+			unlink($outputFile);
+			exit;
+		} catch(\JavaException $e) {
+			echo 'Error: '.$e; exit;
+		} catch(\Exception $e) {
+			echo 'Error Exception: '.$e;; exit;
+		}
+	}
+
 	public function verXlsx($archivoReporte,$adicional){
 		java_set_file_encoding("UTF-8");
 		if (is_array($adicional)) {
@@ -146,7 +197,7 @@ class Generate{
 		// xlsExporter.exportReport();
 		$xlsExporter->exportReport();
 
-		$nombre = date('d-m-Y').'_' . $adicional['name'] . '.xlsx';
+		$nombre = date('dmY').'_' . $adicional['name'] . '.xlsx';
 		header('Content-Description: File Transfer');
 		header('Content-Type: application/octet-stream');
 		header('Content-Disposition: attachment; filename="'.$nombre.'"');
