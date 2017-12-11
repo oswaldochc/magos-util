@@ -8,22 +8,34 @@ class Generate{
 	protected $_exportaExcel = null;
 	protected $_parametro = null;
 
-	public function __construct($phpbridgeversion = ''){
+	public function __construct($phpbridgeversion = '', $params = array()){
 		try {
 			defined('JAVA_HOSTS') || define("JAVA_HOSTS", \Magos\Util\Report::getJavaHost());
 			$siuBridge = \Magos\Util\Report::getBridgeMagosVersion($phpbridgeversion);
 			if(!@include_once($siuBridge)) {
 				$includeError = 1;
-				throw new \Exception('Servicio "Firma Comprobantes" No disponible');
+				throw new \Exception('Servicio No disponible');
 			}
-			$this->_connexion = new java('org.magos.JavaBridgeJdbcConnector');
-			$this->_connexion->setUrl(\Magos\Util\Report::getConexion());
-			$this->_connexion->setUsername(\Magos\Util\Report::getUser());
+			if (array_key_exists('db_report_params', $params)) {
+				$url  = $params['db_report_params']['url'];
+				$usuario  = $params['db_report_params']['user'];
+				$passwd  = $params['db_report_params']['passwd'];
+				$driver = $params['db_report_params']['driver'];
+			} else {
+				$url  = \Magos\Util\Report::getConexion();
+				$usuario  = \Magos\Util\Report::getUser();
+				$passwd  = \Magos\Util\Report::getPassword();
+				$driver = \Magos\Util\Report::getDriver();
+			}
+			//$System = Java("java.lang.System");
+			//echo 'Hola'.$System->getProperties();exit;
+			$this->_connexion = new \Java('org.magos.JavaBridgeJdbcConnector');
+			$this->_connexion->setUrl($url);
+			$this->_connexion->setUsername($usuario);
 
-			$this->_connexion->setDriver(\Magos\Util\Report::getDriver());
-			$this->_connexion->setPassword(\Magos\Util\Report::getPassword());
+			$this->_connexion->setDriver($driver);
+			$this->_connexion->setPassword($passwd);
 			$this->_crearReporte = java('net.sf.jasperreports.engine.JasperFillManager');
-
 		} catch(JavaException $e) {
 			echo 'Error: '.$e;
 		} catch(\Exception $e) {
@@ -53,7 +65,7 @@ class Generate{
 				$this->exportXls($dirReporte, $archivoReporte);
 				break;
 			case 'verpdf':
-				$this->verPdf($archivoReporte);
+				$this->verPdf($archivoReporte, $adicional);
 				break;
 			case 'downloadpdf':
 				$this->downloadPdf($archivoReporte, $adicional);
@@ -79,7 +91,17 @@ class Generate{
 		$exportador->exportReport();
 	}
 
-	public function verPdf($archivoReporte){
+	public function verPdf($archivoReporte, $adicional = array()){
+		$metadataTitle = '';
+		$nameFile = time();
+		if (is_array($adicional) && count($adicional) > 0) {
+			if (array_key_exists('metadata_title', $adicional)) {
+				$metadataTitle = $adicional['metadata_title'];
+			}
+			if (array_key_exists('name_file', $adicional)) {
+				$nameFile = $adicional['name_file'];
+			}
+		}
 		try {
 			// JRPdfExporter pdfExporter = new JRPdfExporter();
 			java_set_file_encoding("UTF-8");
@@ -95,6 +117,10 @@ class Generate{
 			$configuration = new java('net.sf.jasperreports.export.SimplePdfExporterConfiguration');
 			// configuration.setCreatingBatchModeBookmarks(true);
 			$configuration->setCreatingBatchModeBookmarks(true);
+			if(!empty($metadataTitle)) {
+				$configuration->setMetadataTitle($metadataTitle);
+				$configuration->setDisplayMetadataTitle(true);
+			}
 			// pdfExporter.setConfiguration(configuration);
 			$pdfExporter->setConfiguration($configuration);
 			// pdfExporter.exportReport();
